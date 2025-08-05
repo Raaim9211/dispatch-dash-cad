@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,75 +10,50 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
 
 interface Call {
   id: string;
   type: string;
   location: string;
-  time: string;
   priority: 'HIGH' | 'MEDIUM' | 'LOW';
   status: 'ACTIVE' | 'PENDING' | 'CLOSED';
+  created_at: string;
 }
 
 interface Unit {
   id: string;
-  callSign: string;
+  unit_number: string;
   status: 'AVAILABLE' | 'BUSY' | 'OUT_OF_SERVICE';
   location: string;
   officer: string;
+  created_at: string;
 }
 
 const Dashboard = () => {
-  const [recentCalls, setRecentCalls] = useState<Call[]>([
-    {
-      id: '1',
-      type: '911 Emergency',
-      location: '123 Main St',
-      time: '14:32',
-      priority: 'HIGH',
-      status: 'ACTIVE'
-    },
-    {
-      id: '2',
-      type: 'Traffic Stop',
-      location: 'Highway 101',
-      time: '14:28',
-      priority: 'MEDIUM',
-      status: 'ACTIVE'
-    },
-    {
-      id: '3',
-      type: 'Welfare Check',
-      location: '456 Oak Ave',
-      time: '14:15',
-      priority: 'LOW',
-      status: 'CLOSED'
-    }
-  ]);
+  const [recentCalls, setRecentCalls] = useState<Call[]>([]);
+  const [activeUnits, setActiveUnits] = useState<Unit[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [activeUnits, setActiveUnits] = useState<Unit[]>([
-    {
-      id: '1',
-      callSign: 'Unit 101',
-      status: 'AVAILABLE',
-      location: 'Downtown Patrol',
-      officer: 'Officer Smith'
-    },
-    {
-      id: '2',
-      callSign: 'Unit 205',
-      status: 'BUSY',
-      location: '123 Main St',
-      officer: 'Officer Johnson'
-    },
-    {
-      id: '3',
-      callSign: 'Unit 312',
-      status: 'AVAILABLE',
-      location: 'North District',
-      officer: 'Officer Williams'
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const [callsResponse, unitsResponse] = await Promise.all([
+        supabase.from('calls').select('*').order('created_at', { ascending: false }),
+        supabase.from('units').select('*').order('created_at', { ascending: false })
+      ]);
+
+      if (callsResponse.data) setRecentCalls(callsResponse.data);
+      if (unitsResponse.data) setActiveUnits(unitsResponse.data);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
   const { toast } = useToast();
 
@@ -105,7 +80,7 @@ const Dashboard = () => {
   const availableUnits = activeUnits.filter(unit => unit.status === 'AVAILABLE').length;
   const totalBolos = 3; // Mock data
 
-  const handleAddCall = () => {
+  const handleAddCall = async () => {
     if (!newCall.type.trim() || !newCall.location.trim()) {
       toast({
         variant: "destructive",
@@ -115,26 +90,37 @@ const Dashboard = () => {
       return;
     }
 
-    const call: Call = {
-      id: Date.now().toString(),
-      type: newCall.type,
-      location: newCall.location,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      priority: newCall.priority,
-      status: 'ACTIVE'
-    };
+    try {
+      const { data, error } = await supabase.from('calls').insert([{
+        type: newCall.type,
+        location: newCall.location,
+        priority: newCall.priority,
+        status: 'ACTIVE'
+      }]).select();
 
-    setRecentCalls([call, ...recentCalls]);
-    setNewCall({ type: '', location: '', priority: 'MEDIUM' });
-    setIsAddCallDialogOpen(false);
+      if (error) throw error;
+      
+      if (data) {
+        setRecentCalls([data[0], ...recentCalls]);
+        setNewCall({ type: '', location: '', priority: 'MEDIUM' });
+        setIsAddCallDialogOpen(false);
 
-    toast({
-      title: "Call Added",
-      description: "New call has been successfully added.",
-    });
+        toast({
+          title: "Call Added",
+          description: "New call has been successfully added.",
+        });
+      }
+    } catch (error) {
+      console.error('Error adding call:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add call",
+      });
+    }
   };
 
-  const handleAddUnit = () => {
+  const handleAddUnit = async () => {
     if (!newUnit.callSign.trim() || !newUnit.officer.trim() || !newUnit.location.trim()) {
       toast({
         variant: "destructive",
@@ -144,22 +130,34 @@ const Dashboard = () => {
       return;
     }
 
-    const unit: Unit = {
-      id: Date.now().toString(),
-      callSign: newUnit.callSign,
-      officer: newUnit.officer,
-      location: newUnit.location,
-      status: newUnit.status
-    };
+    try {
+      const { data, error } = await supabase.from('units').insert([{
+        unit_number: newUnit.callSign,
+        officer: newUnit.officer,
+        location: newUnit.location,
+        status: newUnit.status
+      }]).select();
 
-    setActiveUnits([...activeUnits, unit]);
-    setNewUnit({ callSign: '', officer: '', location: '', status: 'AVAILABLE' });
-    setIsAddUnitDialogOpen(false);
+      if (error) throw error;
+      
+      if (data) {
+        setActiveUnits([...activeUnits, data[0]]);
+        setNewUnit({ callSign: '', officer: '', location: '', status: 'AVAILABLE' });
+        setIsAddUnitDialogOpen(false);
 
-    toast({
-      title: "Unit Added",
-      description: "New unit has been successfully added.",
-    });
+        toast({
+          title: "Unit Added",
+          description: "New unit has been successfully added.",
+        });
+      }
+    } catch (error) {
+      console.error('Error adding unit:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add unit",
+      });
+    }
   };
 
   const handleEditCall = (callId: string) => {
@@ -169,12 +167,22 @@ const Dashboard = () => {
     });
   };
 
-  const handleDeleteCall = (callId: string) => {
-    setRecentCalls(recentCalls.filter(call => call.id !== callId));
-    toast({
-      title: "Call Deleted",
-      description: "Call has been removed from the system",
-    });
+  const handleDeleteCall = async (callId: string) => {
+    try {
+      await supabase.from('calls').delete().eq('id', callId);
+      setRecentCalls(recentCalls.filter(call => call.id !== callId));
+      toast({
+        title: "Call Deleted",
+        description: "Call has been removed from the system",
+      });
+    } catch (error) {
+      console.error('Error deleting call:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete call",
+      });
+    }
   };
 
   const handleEditUnit = (unitId: string) => {
@@ -184,23 +192,43 @@ const Dashboard = () => {
     });
   };
 
-  const handleDeleteUnit = (unitId: string) => {
-    setActiveUnits(activeUnits.filter(unit => unit.id !== unitId));
-    toast({
-      title: "Unit Deleted", 
-      description: "Unit has been removed from the system",
-    });
+  const handleDeleteUnit = async (unitId: string) => {
+    try {
+      await supabase.from('units').delete().eq('id', unitId);
+      setActiveUnits(activeUnits.filter(unit => unit.id !== unitId));
+      toast({
+        title: "Unit Deleted", 
+        description: "Unit has been removed from the system",
+      });
+    } catch (error) {
+      console.error('Error deleting unit:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete unit",
+      });
+    }
   };
 
-  const handleStatusChange = (unitId: string, newStatus: 'AVAILABLE' | 'BUSY' | 'OUT_OF_SERVICE') => {
-    setActiveUnits(activeUnits.map(unit => 
-      unit.id === unitId ? { ...unit, status: newStatus } : unit
-    ));
-    const unit = activeUnits.find(u => u.id === unitId);
-    toast({
-      title: "Status Updated",
-      description: `${unit?.callSign} status changed to ${newStatus.replace('_', ' ')}`,
-    });
+  const handleStatusChange = async (unitId: string, newStatus: 'AVAILABLE' | 'BUSY' | 'OUT_OF_SERVICE') => {
+    try {
+      await supabase.from('units').update({ status: newStatus }).eq('id', unitId);
+      setActiveUnits(activeUnits.map(unit => 
+        unit.id === unitId ? { ...unit, status: newStatus } : unit
+      ));
+      const unit = activeUnits.find(u => u.id === unitId);
+      toast({
+        title: "Status Updated",
+        description: `${unit?.unit_number} status changed to ${newStatus.replace('_', ' ')}`,
+      });
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update status",
+      });
+    }
   };
 
   const getPriorityColor = (priority: string) => {
@@ -374,7 +402,7 @@ const Dashboard = () => {
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">{call.location}</p>
-                    <p className="text-xs text-muted-foreground">{call.time}</p>
+                    <p className="text-xs text-muted-foreground">{new Date(call.created_at).toLocaleTimeString()}</p>
                   </div>
 
                   <Radio className="w-5 h-5 text-muted-foreground" />
@@ -493,7 +521,7 @@ const Dashboard = () => {
                   {/* Unit Details */}
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium">{unit.callSign}</h4>
+                      <h4 className="font-medium">{unit.unit_number}</h4>
                       
                       {/* Status Dropdown */}
                       <DropdownMenu>
