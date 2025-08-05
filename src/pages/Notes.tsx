@@ -98,6 +98,16 @@ const Notes = () => {
       if (error) throw error;
       
       if (data) {
+        // If it's a 911 call, also add it to the calls table for Recent Calls
+        if (newNote.type === '911_CALL') {
+          await supabase.from('calls').insert([{
+            type: newNote.title,
+            location: 'Location from call notes', // You might want to add a location field to notes
+            priority: newNote.priority,
+            status: 'ACTIVE'
+          }]);
+        }
+
         setNotes([data[0] as Note, ...notes]);
         setNewNote({
           type: 'CUSTOM',
@@ -110,7 +120,9 @@ const Notes = () => {
 
         toast({
           title: "Note Added",
-          description: "Note has been successfully added.",
+          description: newNote.type === '911_CALL' 
+            ? "911 call note added and call dispatched to Recent Calls" 
+            : "Note has been successfully added.",
         });
       }
     } catch (error) {
