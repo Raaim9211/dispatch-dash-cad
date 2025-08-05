@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Users, AlertTriangle, Radio, Phone } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, AlertTriangle, Radio, Phone, MoreVertical } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
 
 interface Call {
   id: string;
@@ -22,7 +24,7 @@ interface Unit {
 }
 
 const Dashboard = () => {
-  const [recentCalls] = useState<Call[]>([
+  const [recentCalls, setRecentCalls] = useState<Call[]>([
     {
       id: '1',
       type: '911 Emergency',
@@ -49,7 +51,7 @@ const Dashboard = () => {
     }
   ]);
 
-  const [activeUnits] = useState<Unit[]>([
+  const [activeUnits, setActiveUnits] = useState<Unit[]>([
     {
       id: '1',
       callSign: 'Unit 101',
@@ -73,9 +75,52 @@ const Dashboard = () => {
     }
   ]);
 
+  const { toast } = useToast();
+
   const activeCalls = recentCalls.filter(call => call.status === 'ACTIVE').length;
   const availableUnits = activeUnits.filter(unit => unit.status === 'AVAILABLE').length;
   const totalBolos = 3; // Mock data
+
+  const handleEditCall = (callId: string) => {
+    toast({
+      title: "Edit Call",
+      description: `Editing call ${callId}`,
+    });
+  };
+
+  const handleDeleteCall = (callId: string) => {
+    setRecentCalls(recentCalls.filter(call => call.id !== callId));
+    toast({
+      title: "Call Deleted",
+      description: "Call has been removed from the system",
+    });
+  };
+
+  const handleEditUnit = (unitId: string) => {
+    toast({
+      title: "Edit Unit",
+      description: `Editing unit ${unitId}`,
+    });
+  };
+
+  const handleDeleteUnit = (unitId: string) => {
+    setActiveUnits(activeUnits.filter(unit => unit.id !== unitId));
+    toast({
+      title: "Unit Deleted", 
+      description: "Unit has been removed from the system",
+    });
+  };
+
+  const handleStatusChange = (unitId: string, newStatus: 'AVAILABLE' | 'BUSY' | 'OUT_OF_SERVICE') => {
+    setActiveUnits(activeUnits.map(unit => 
+      unit.id === unitId ? { ...unit, status: newStatus } : unit
+    ));
+    const unit = activeUnits.find(u => u.id === unitId);
+    toast({
+      title: "Status Updated",
+      description: `${unit?.callSign} status changed to ${newStatus.replace('_', ' ')}`,
+    });
+  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -164,7 +209,28 @@ const Dashboard = () => {
           <CardContent>
             <div className="space-y-3">
               {recentCalls.map((call) => (
-                <div key={call.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 border border-border/50">
+                <div key={call.id} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 border border-border/50">
+                  {/* Action Buttons */}
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 hover:bg-primary/10"
+                      onClick={() => handleEditCall(call.id)}
+                    >
+                      <Edit className="w-3 h-3 text-primary" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 hover:bg-destructive/10"
+                      onClick={() => handleDeleteCall(call.id)}
+                    >
+                      <Trash2 className="w-3 h-3 text-destructive" />
+                    </Button>
+                  </div>
+
+                  {/* Call Details */}
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="font-medium">{call.type}</h4>
@@ -178,6 +244,7 @@ const Dashboard = () => {
                     <p className="text-sm text-muted-foreground">{call.location}</p>
                     <p className="text-xs text-muted-foreground">{call.time}</p>
                   </div>
+
                   <Radio className="w-5 h-5 text-muted-foreground" />
                 </div>
               ))}
@@ -209,17 +276,73 @@ const Dashboard = () => {
           <CardContent>
             <div className="space-y-3">
               {activeUnits.map((unit) => (
-                <div key={unit.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 border border-border/50">
+                <div key={unit.id} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 border border-border/50">
+                  {/* Action Buttons */}
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 hover:bg-primary/10"
+                      onClick={() => handleEditUnit(unit.id)}
+                    >
+                      <Edit className="w-3 h-3 text-primary" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 hover:bg-destructive/10"
+                      onClick={() => handleDeleteUnit(unit.id)}
+                    >
+                      <Trash2 className="w-3 h-3 text-destructive" />
+                    </Button>
+                  </div>
+
+                  {/* Unit Details */}
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="font-medium">{unit.callSign}</h4>
-                      <Badge className={getStatusColor(unit.status)}>
-                        {unit.status.replace('_', ' ')}
-                      </Badge>
+                      
+                      {/* Status Dropdown */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className={`h-6 px-2 text-xs border-0 ${getStatusColor(unit.status)} hover:opacity-80`}
+                          >
+                            {unit.status.replace('_', ' ')}
+                            <MoreVertical className="w-3 h-3 ml-1" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent 
+                          className="bg-popover border-border shadow-lg z-50"
+                          align="start"
+                        >
+                          <DropdownMenuItem 
+                            onClick={() => handleStatusChange(unit.id, 'AVAILABLE')}
+                            className="hover:bg-success/10 hover:text-success"
+                          >
+                            Available
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleStatusChange(unit.id, 'BUSY')}
+                            className="hover:bg-warning/10 hover:text-warning"
+                          >
+                            Busy
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleStatusChange(unit.id, 'OUT_OF_SERVICE')}
+                            className="hover:bg-destructive/10 hover:text-destructive"
+                          >
+                            Out of Service
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                     <p className="text-sm text-muted-foreground">{unit.officer}</p>
                     <p className="text-xs text-muted-foreground">{unit.location}</p>
                   </div>
+
                   <Users className="w-5 h-5 text-muted-foreground" />
                 </div>
               ))}
