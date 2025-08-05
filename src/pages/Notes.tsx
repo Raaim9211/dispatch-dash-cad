@@ -224,226 +224,207 @@ const Notes = () => {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-foreground">Notes</h1>
-        
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Note
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-card border-border max-w-md">
-            <DialogHeader>
-              <DialogTitle>Add New Note</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="note-type">Note Type</Label>
-                <Select 
-                  value={newNote.type} 
-                  onValueChange={(value: 'BOLO' | '911_CALL' | 'CUSTOM') => 
-                    setNewNote({...newNote, type: value})
-                  }
-                >
-                  <SelectTrigger className="bg-input border-border">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border-border">
-                    <SelectItem value="BOLO">BOLO</SelectItem>
-                    <SelectItem value="911_CALL">911 Call</SelectItem>
-                    <SelectItem value="CUSTOM">Custom</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+      </div>
 
-              {newNote.type === 'BOLO' && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="bolo-type">BOLO Type</Label>
-                    <Select 
-                      value={newNote.boloType} 
-                      onValueChange={(value: 'PERSON' | 'VEHICLE') => 
-                        setNewNote({...newNote, boloType: value})
-                      }
-                    >
-                      <SelectTrigger className="bg-input border-border">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover border-border z-50">
-                        <SelectItem value="PERSON">Person BOLO</SelectItem>
-                        <SelectItem value="VEHICLE">Vehicle BOLO</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {newNote.boloType === 'VEHICLE' && (
-                    <>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                          <Label htmlFor="vehicle-make">Vehicle Make</Label>
-                          <Input
-                            id="vehicle-make"
-                            value={newNote.vehicleMake}
-                            onChange={(e) => setNewNote({...newNote, vehicleMake: e.target.value})}
-                            placeholder="e.g., Toyota"
-                            className="bg-input border-border"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="vehicle-model">Vehicle Model</Label>
-                          <Input
-                            id="vehicle-model"
-                            value={newNote.vehicleModel}
-                            onChange={(e) => setNewNote({...newNote, vehicleModel: e.target.value})}
-                            placeholder="e.g., Camry"
-                            className="bg-input border-border"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                          <Label htmlFor="vehicle-year">Year</Label>
-                          <Input
-                            id="vehicle-year"
-                            value={newNote.vehicleYear}
-                            onChange={(e) => setNewNote({...newNote, vehicleYear: e.target.value})}
-                            placeholder="e.g., 2020"
-                            className="bg-input border-border"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="vehicle-color">Color</Label>
-                          <Input
-                            id="vehicle-color"
-                            value={newNote.vehicleColor}
-                            onChange={(e) => setNewNote({...newNote, vehicleColor: e.target.value})}
-                            placeholder="e.g., Red"
-                            className="bg-input border-border"
-                          />
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  <div className="space-y-2">
-                    <Label htmlFor="bolo-reason">Reason</Label>
-                    <Input
-                      id="bolo-reason"
-                      value={newNote.boloReason}
-                      onChange={(e) => setNewNote({...newNote, boloReason: e.target.value})}
-                      placeholder="Reason for BOLO"
-                      className="bg-input border-border"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="last-known">Last Known Location</Label>
-                    <Input
-                      id="last-known"
-                      value={newNote.lastKnown}
-                      onChange={(e) => setNewNote({...newNote, lastKnown: e.target.value})}
-                      placeholder="Last known whereabouts"
-                      className="bg-input border-border"
-                    />
-                  </div>
-                </>
-              )}
-
-              {newNote.type === 'CUSTOM' && (
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="bg-card border-border max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {newNote.type === 'BOLO' ? 'Add BOLO' : 
+               newNote.type === '911_CALL' ? 'Add 911 Call' : 
+               'Add Custom Note'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {newNote.type === 'BOLO' && (
+              <>
                 <div className="space-y-2">
-                  <Label htmlFor="custom-type">Custom Type</Label>
+                  <Label htmlFor="bolo-type">BOLO Type</Label>
+                  <Select 
+                    value={newNote.boloType} 
+                    onValueChange={(value: 'PERSON' | 'VEHICLE') => 
+                      setNewNote({...newNote, boloType: value})
+                    }
+                  >
+                    <SelectTrigger className="bg-input border-border">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-border z-50">
+                      <SelectItem value="PERSON">Person BOLO</SelectItem>
+                      <SelectItem value="VEHICLE">Vehicle BOLO</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {newNote.boloType === 'VEHICLE' && (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="vehicle-make">Vehicle Make</Label>
+                        <Input
+                          id="vehicle-make"
+                          value={newNote.vehicleMake}
+                          onChange={(e) => setNewNote({...newNote, vehicleMake: e.target.value})}
+                          placeholder="e.g., Toyota"
+                          className="bg-input border-border"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="vehicle-model">Vehicle Model</Label>
+                        <Input
+                          id="vehicle-model"
+                          value={newNote.vehicleModel}
+                          onChange={(e) => setNewNote({...newNote, vehicleModel: e.target.value})}
+                          placeholder="e.g., Camry"
+                          className="bg-input border-border"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="vehicle-year">Year</Label>
+                        <Input
+                          id="vehicle-year"
+                          value={newNote.vehicleYear}
+                          onChange={(e) => setNewNote({...newNote, vehicleYear: e.target.value})}
+                          placeholder="e.g., 2020"
+                          className="bg-input border-border"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="vehicle-color">Color</Label>
+                        <Input
+                          id="vehicle-color"
+                          value={newNote.vehicleColor}
+                          onChange={(e) => setNewNote({...newNote, vehicleColor: e.target.value})}
+                          placeholder="e.g., Red"
+                          className="bg-input border-border"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="bolo-reason">Reason</Label>
                   <Input
-                    id="custom-type"
-                    value={newNote.customType}
-                    onChange={(e) => setNewNote({...newNote, customType: e.target.value})}
-                    placeholder="e.g., Traffic, Weather, etc."
+                    id="bolo-reason"
+                    value={newNote.boloReason}
+                    onChange={(e) => setNewNote({...newNote, boloReason: e.target.value})}
+                    placeholder="Reason for BOLO"
                     className="bg-input border-border"
                   />
                 </div>
-              )}
 
-              {newNote.type === '911_CALL' && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="caller-name">Caller Name</Label>
-                    <Input
-                      id="caller-name"
-                      value={newNote.callerName}
-                      onChange={(e) => setNewNote({...newNote, callerName: e.target.value})}
-                      placeholder="Name of caller"
-                      className="bg-input border-border"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="call-location">Location</Label>
-                    <Input
-                      id="call-location"
-                      value={newNote.location}
-                      onChange={(e) => setNewNote({...newNote, location: e.target.value})}
-                      placeholder="Address or location"
-                      className="bg-input border-border"
-                    />
-                  </div>
-                </>
-              )}
+                <div className="space-y-2">
+                  <Label htmlFor="last-known">Last Known Location</Label>
+                  <Input
+                    id="last-known"
+                    value={newNote.lastKnown}
+                    onChange={(e) => setNewNote({...newNote, lastKnown: e.target.value})}
+                    placeholder="Last known whereabouts"
+                    className="bg-input border-border"
+                  />
+                </div>
+              </>
+            )}
 
+            {newNote.type === 'CUSTOM' && (
               <div className="space-y-2">
-                <Label htmlFor="note-title">Title</Label>
+                <Label htmlFor="custom-type">Custom Type</Label>
                 <Input
-                  id="note-title"
-                  value={newNote.title}
-                  onChange={(e) => setNewNote({...newNote, title: e.target.value})}
-                  placeholder="Brief description"
+                  id="custom-type"
+                  value={newNote.customType}
+                  onChange={(e) => setNewNote({...newNote, customType: e.target.value})}
+                  placeholder="e.g., Traffic, Weather, etc."
                   className="bg-input border-border"
                 />
               </div>
+            )}
 
-              <div className="space-y-2">
-                <Label htmlFor="note-description">Description</Label>
-                <Textarea
-                  id="note-description"
-                  value={newNote.description}
-                  onChange={(e) => setNewNote({...newNote, description: e.target.value})}
-                  placeholder="Detailed information..."
-                  className="bg-input border-border min-h-[100px]"
-                />
-              </div>
+            {newNote.type === '911_CALL' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="caller-name">Caller Name</Label>
+                  <Input
+                    id="caller-name"
+                    value={newNote.callerName}
+                    onChange={(e) => setNewNote({...newNote, callerName: e.target.value})}
+                    placeholder="Name of caller"
+                    className="bg-input border-border"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="call-location">Location</Label>
+                  <Input
+                    id="call-location"
+                    value={newNote.location}
+                    onChange={(e) => setNewNote({...newNote, location: e.target.value})}
+                    placeholder="Address or location"
+                    className="bg-input border-border"
+                  />
+                </div>
+              </>
+            )}
 
-              <div className="space-y-2">
-                <Label htmlFor="note-priority">Priority</Label>
-                <Select 
-                  value={newNote.priority} 
-                  onValueChange={(value: 'HIGH' | 'MEDIUM' | 'LOW') => 
-                    setNewNote({...newNote, priority: value})
-                  }
-                >
-                  <SelectTrigger className="bg-input border-border">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border-border">
-                    <SelectItem value="HIGH">High</SelectItem>
-                    <SelectItem value="MEDIUM">Medium</SelectItem>
-                    <SelectItem value="LOW">Low</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <Button onClick={handleAddNote} className="flex-1">
-                  Add Note
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsAddDialogOpen(false)}
-                  className="border-border"
-                >
-                  Cancel
-                </Button>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="note-title">Title</Label>
+              <Input
+                id="note-title"
+                value={newNote.title}
+                onChange={(e) => setNewNote({...newNote, title: e.target.value})}
+                placeholder="Brief description"
+                className="bg-input border-border"
+              />
             </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="note-description">Description</Label>
+              <Textarea
+                id="note-description"
+                value={newNote.description}
+                onChange={(e) => setNewNote({...newNote, description: e.target.value})}
+                placeholder="Detailed information..."
+                className="bg-input border-border min-h-[100px]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="note-priority">Priority</Label>
+              <Select 
+                value={newNote.priority} 
+                onValueChange={(value: 'HIGH' | 'MEDIUM' | 'LOW') => 
+                  setNewNote({...newNote, priority: value})
+                }
+              >
+                <SelectTrigger className="bg-input border-border">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border">
+                  <SelectItem value="HIGH">High</SelectItem>
+                  <SelectItem value="MEDIUM">Medium</SelectItem>
+                  <SelectItem value="LOW">Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button onClick={handleAddNote} className="flex-1">
+                Add {newNote.type === 'BOLO' ? 'BOLO' : 
+                     newNote.type === '911_CALL' ? '911 Call' : 
+                     'Note'}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsAddDialogOpen(false)}
+                className="border-border"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Quick Add Buttons */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
