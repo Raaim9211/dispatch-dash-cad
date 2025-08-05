@@ -57,12 +57,16 @@ const Notes = () => {
     description: string;
     priority: 'HIGH' | 'MEDIUM' | 'LOW';
     customType: string;
+    callerName: string;
+    location: string;
   }>({
     type: 'CUSTOM',
     title: '',
     description: '',
     priority: 'MEDIUM',
-    customType: ''
+    customType: '',
+    callerName: '',
+    location: ''
   });
 
   const { toast } = useToast();
@@ -107,7 +111,7 @@ const Notes = () => {
           callLocation = 'Multiple locations - see description';
         } else if (newNote.type === '911_CALL') {
           callType = `911 Call: ${newNote.title}`;
-          callLocation = 'Location from caller';
+          callLocation = newNote.location || 'Location from caller';
         } else if (newNote.type === 'CUSTOM') {
           callType = `${newNote.customType || 'Custom'}: ${newNote.title}`;
           callLocation = 'See notes for location details';
@@ -126,7 +130,9 @@ const Notes = () => {
           title: '',
           description: '',
           priority: 'MEDIUM',
-          customType: ''
+          customType: '',
+          callerName: '',
+          location: ''
         });
         setIsAddDialogOpen(false);
 
@@ -237,6 +243,31 @@ const Notes = () => {
                     className="bg-input border-border"
                   />
                 </div>
+              )}
+
+              {newNote.type === '911_CALL' && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="caller-name">Caller Name</Label>
+                    <Input
+                      id="caller-name"
+                      value={newNote.callerName}
+                      onChange={(e) => setNewNote({...newNote, callerName: e.target.value})}
+                      placeholder="Name of caller"
+                      className="bg-input border-border"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="call-location">Location</Label>
+                    <Input
+                      id="call-location"
+                      value={newNote.location}
+                      onChange={(e) => setNewNote({...newNote, location: e.target.value})}
+                      placeholder="Address or location"
+                      className="bg-input border-border"
+                    />
+                  </div>
+                </>
               )}
 
               <div className="space-y-2">
