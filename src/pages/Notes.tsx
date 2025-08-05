@@ -59,6 +59,13 @@ const Notes = () => {
     customType: string;
     callerName: string;
     location: string;
+    boloType: 'PERSON' | 'VEHICLE';
+    vehicleMake: string;
+    vehicleModel: string;
+    vehicleYear: string;
+    vehicleColor: string;
+    boloReason: string;
+    lastKnown: string;
   }>({
     type: 'CUSTOM',
     title: '',
@@ -66,7 +73,14 @@ const Notes = () => {
     priority: 'MEDIUM',
     customType: '',
     callerName: '',
-    location: ''
+    location: '',
+    boloType: 'PERSON',
+    vehicleMake: '',
+    vehicleModel: '',
+    vehicleYear: '',
+    vehicleColor: '',
+    boloReason: '',
+    lastKnown: ''
   });
 
   const { toast } = useToast();
@@ -107,8 +121,11 @@ const Notes = () => {
         let callLocation = 'See notes for details';
         
         if (newNote.type === 'BOLO') {
-          callType = `BOLO: ${newNote.title}`;
-          callLocation = 'Multiple locations - see description';
+          const boloDetails = newNote.boloType === 'VEHICLE' 
+            ? `${newNote.vehicleYear} ${newNote.vehicleColor} ${newNote.vehicleMake} ${newNote.vehicleModel}`.trim()
+            : 'Person BOLO';
+          callType = `BOLO: ${boloDetails || newNote.title}`;
+          callLocation = newNote.lastKnown || 'Multiple locations - see description';
         } else if (newNote.type === '911_CALL') {
           callType = `911 Call: ${newNote.title}`;
           callLocation = newNote.location || 'Location from caller';
@@ -132,7 +149,14 @@ const Notes = () => {
           priority: 'MEDIUM',
           customType: '',
           callerName: '',
-          location: ''
+          location: '',
+          boloType: 'PERSON',
+          vehicleMake: '',
+          vehicleModel: '',
+          vehicleYear: '',
+          vehicleColor: '',
+          boloReason: '',
+          lastKnown: ''
         });
         setIsAddDialogOpen(false);
 
@@ -231,6 +255,99 @@ const Notes = () => {
                   </SelectContent>
                 </Select>
               </div>
+
+              {newNote.type === 'BOLO' && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="bolo-type">BOLO Type</Label>
+                    <Select 
+                      value={newNote.boloType} 
+                      onValueChange={(value: 'PERSON' | 'VEHICLE') => 
+                        setNewNote({...newNote, boloType: value})
+                      }
+                    >
+                      <SelectTrigger className="bg-input border-border">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover border-border z-50">
+                        <SelectItem value="PERSON">Person BOLO</SelectItem>
+                        <SelectItem value="VEHICLE">Vehicle BOLO</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {newNote.boloType === 'VEHICLE' && (
+                    <>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="vehicle-make">Vehicle Make</Label>
+                          <Input
+                            id="vehicle-make"
+                            value={newNote.vehicleMake}
+                            onChange={(e) => setNewNote({...newNote, vehicleMake: e.target.value})}
+                            placeholder="e.g., Toyota"
+                            className="bg-input border-border"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="vehicle-model">Vehicle Model</Label>
+                          <Input
+                            id="vehicle-model"
+                            value={newNote.vehicleModel}
+                            onChange={(e) => setNewNote({...newNote, vehicleModel: e.target.value})}
+                            placeholder="e.g., Camry"
+                            className="bg-input border-border"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="vehicle-year">Year</Label>
+                          <Input
+                            id="vehicle-year"
+                            value={newNote.vehicleYear}
+                            onChange={(e) => setNewNote({...newNote, vehicleYear: e.target.value})}
+                            placeholder="e.g., 2020"
+                            className="bg-input border-border"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="vehicle-color">Color</Label>
+                          <Input
+                            id="vehicle-color"
+                            value={newNote.vehicleColor}
+                            onChange={(e) => setNewNote({...newNote, vehicleColor: e.target.value})}
+                            placeholder="e.g., Red"
+                            className="bg-input border-border"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bolo-reason">Reason</Label>
+                    <Input
+                      id="bolo-reason"
+                      value={newNote.boloReason}
+                      onChange={(e) => setNewNote({...newNote, boloReason: e.target.value})}
+                      placeholder="Reason for BOLO"
+                      className="bg-input border-border"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="last-known">Last Known Location</Label>
+                    <Input
+                      id="last-known"
+                      value={newNote.lastKnown}
+                      onChange={(e) => setNewNote({...newNote, lastKnown: e.target.value})}
+                      placeholder="Last known whereabouts"
+                      className="bg-input border-border"
+                    />
+                  </div>
+                </>
+              )}
 
               {newNote.type === 'CUSTOM' && (
                 <div className="space-y-2">
