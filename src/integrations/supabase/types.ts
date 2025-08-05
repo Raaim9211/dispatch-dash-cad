@@ -44,6 +44,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notes: {
+        Row: {
+          created_at: string
+          custom_type: string | null
+          description: string
+          id: string
+          priority: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_type?: string | null
+          description: string
+          id?: string
+          priority?: string
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_type?: string | null
+          description?: string
+          id?: string
+          priority?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       units: {
         Row: {
           created_at: string

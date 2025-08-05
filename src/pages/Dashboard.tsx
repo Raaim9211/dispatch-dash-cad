@@ -46,8 +46,8 @@ const Dashboard = () => {
         supabase.from('units').select('*').order('created_at', { ascending: false })
       ]);
 
-      if (callsResponse.data) setRecentCalls(callsResponse.data);
-      if (unitsResponse.data) setActiveUnits(unitsResponse.data);
+      if (callsResponse.data) setRecentCalls(callsResponse.data as Call[]);
+      if (unitsResponse.data) setActiveUnits(unitsResponse.data as Unit[]);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -101,7 +101,7 @@ const Dashboard = () => {
       if (error) throw error;
       
       if (data) {
-        setRecentCalls([data[0], ...recentCalls]);
+        setRecentCalls([data[0] as Call, ...recentCalls]);
         setNewCall({ type: '', location: '', priority: 'MEDIUM' });
         setIsAddCallDialogOpen(false);
 
@@ -141,7 +141,7 @@ const Dashboard = () => {
       if (error) throw error;
       
       if (data) {
-        setActiveUnits([...activeUnits, data[0]]);
+        setActiveUnits([...activeUnits, data[0] as Unit]);
         setNewUnit({ callSign: '', officer: '', location: '', status: 'AVAILABLE' });
         setIsAddUnitDialogOpen(false);
 

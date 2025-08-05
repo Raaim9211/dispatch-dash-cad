@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, AlertTriangle, Phone, FileText, Clock, Trash2, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Note {
   id: string;
@@ -16,38 +17,38 @@ interface Note {
   title: string;
   description: string;
   priority: 'HIGH' | 'MEDIUM' | 'LOW';
-  timestamp: string;
-  customType?: string;
+  created_at: string;
+  custom_type?: string;
 }
 
 const Notes = () => {
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: '1',
-      type: 'BOLO',
-      title: 'Suspect Vehicle - Blue Sedan',
-      description: 'License plate ABC-123, wanted in connection with robbery on Main Street',
-      priority: 'HIGH',
-      timestamp: '2024-01-15 14:30'
-    },
-    {
-      id: '2',
-      type: '911_CALL',
-      title: 'Domestic Disturbance',
-      description: 'Caller reports loud argument at 456 Oak Avenue, multiple units requested',
-      priority: 'MEDIUM',
-      timestamp: '2024-01-15 14:25'
-    },
-    {
-      id: '3',
-      type: 'CUSTOM',
-      title: 'Traffic Advisory',
-      description: 'Road closure on Highway 101 due to construction, expect delays',
-      priority: 'LOW',
-      timestamp: '2024-01-15 13:45',
-      customType: 'Traffic'
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadNotes();
+  }, []);
+
+  const loadNotes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('notes')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      if (data) setNotes(data as Note[]);
+    } catch (error) {
+      console.error('Error loading notes:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load notes",
+      });
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newNote, setNewNote] = useState<{
@@ -66,7 +67,7 @@ const Notes = () => {
 
   const { toast } = useToast();
 
-  const handleAddNote = () => {
+  const handleAddNote = async () => {
     if (!newNote.title.trim() || !newNote.description.trim()) {
       toast({
         variant: "destructive",
@@ -85,38 +86,59 @@ const Notes = () => {
       return;
     }
 
-    const note: Note = {
-      id: Date.now().toString(),
-      type: newNote.type,
-      title: newNote.title,
-      description: newNote.description,
-      priority: newNote.priority,
-      timestamp: new Date().toLocaleString(),
-      customType: newNote.type === 'CUSTOM' ? newNote.customType : undefined
-    };
+    try {
+      const { data, error } = await supabase.from('notes').insert([{
+        type: newNote.type,
+        title: newNote.title,
+        description: newNote.description,
+        priority: newNote.priority,
+        custom_type: newNote.type === 'CUSTOM' ? newNote.customType : null
+      }]).select();
 
-    setNotes([note, ...notes]);
-    setNewNote({
-      type: 'CUSTOM',
-      title: '',
-      description: '',
-      priority: 'MEDIUM',
-      customType: ''
-    });
-    setIsAddDialogOpen(false);
+      if (error) throw error;
+      
+      if (data) {
+        setNotes([data[0] as Note, ...notes]);
+        setNewNote({
+          type: 'CUSTOM',
+          title: '',
+          description: '',
+          priority: 'MEDIUM',
+          customType: ''
+        });
+        setIsAddDialogOpen(false);
 
-    toast({
-      title: "Note Added",
-      description: `${note.type} note has been successfully added.`,
-    });
+        toast({
+          title: "Note Added",
+          description: "Note has been successfully added.",
+        });
+      }
+    } catch (error) {
+      console.error('Error adding note:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add note",
+      });
+    }
   };
 
-  const handleDeleteNote = (noteId: string) => {
-    setNotes(notes.filter(note => note.id !== noteId));
-    toast({
-      title: "Note Deleted",
-      description: "Note has been successfully removed.",
-    });
+  const handleDeleteNote = async (noteId: string) => {
+    try {
+      await supabase.from('notes').delete().eq('id', noteId);
+      setNotes(notes.filter(note => note.id !== noteId));
+      toast({
+        title: "Note Deleted",
+        description: "Note has been successfully removed.",
+      });
+    } catch (error) {
+      console.error('Error deleting note:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete note",
+      });
+    }
   };
 
   const getPriorityColor = (priority: string) => {
@@ -314,16 +336,16 @@ const Notes = () => {
                    <div>
                      <CardTitle className="text-lg">{note.title}</CardTitle>
                      <div className="flex items-center gap-2 mt-1">
-                       <Badge className={getTypeColor(note.type)}>
-                         {note.type === 'CUSTOM' && note.customType ? note.customType : note.type.replace('_', ' ')}
-                       </Badge>
-                       <Badge className={getPriorityColor(note.priority)}>
-                         {note.priority}
-                       </Badge>
-                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                         <Clock className="w-3 h-3" />
-                         {note.timestamp}
-                       </div>
+                        <Badge className={getTypeColor(note.type)}>
+                          {note.type === 'CUSTOM' && note.custom_type ? note.custom_type : note.type.replace('_', ' ')}
+                        </Badge>
+                        <Badge className={getPriorityColor(note.priority)}>
+                          {note.priority}
+                        </Badge>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock className="w-3 h-3" />
+                          {new Date(note.created_at).toLocaleString()}
+                        </div>
                      </div>
                    </div>
                  </div>
