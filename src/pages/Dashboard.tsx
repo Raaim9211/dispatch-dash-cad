@@ -4,6 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Users, AlertTriangle, Radio, Phone, MoreVertical } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 
 interface Call {
@@ -77,9 +82,85 @@ const Dashboard = () => {
 
   const { toast } = useToast();
 
+  // Dialog states
+  const [isAddCallDialogOpen, setIsAddCallDialogOpen] = useState(false);
+  const [isAddUnitDialogOpen, setIsAddUnitDialogOpen] = useState(false);
+  
+  // New call form state
+  const [newCall, setNewCall] = useState({
+    type: '',
+    location: '',
+    priority: 'MEDIUM' as 'HIGH' | 'MEDIUM' | 'LOW'
+  });
+
+  // New unit form state
+  const [newUnit, setNewUnit] = useState({
+    callSign: '',
+    officer: '',
+    location: '',
+    status: 'AVAILABLE' as 'AVAILABLE' | 'BUSY' | 'OUT_OF_SERVICE'
+  });
+
   const activeCalls = recentCalls.filter(call => call.status === 'ACTIVE').length;
   const availableUnits = activeUnits.filter(unit => unit.status === 'AVAILABLE').length;
   const totalBolos = 3; // Mock data
+
+  const handleAddCall = () => {
+    if (!newCall.type.trim() || !newCall.location.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+      });
+      return;
+    }
+
+    const call: Call = {
+      id: Date.now().toString(),
+      type: newCall.type,
+      location: newCall.location,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      priority: newCall.priority,
+      status: 'ACTIVE'
+    };
+
+    setRecentCalls([call, ...recentCalls]);
+    setNewCall({ type: '', location: '', priority: 'MEDIUM' });
+    setIsAddCallDialogOpen(false);
+
+    toast({
+      title: "Call Added",
+      description: "New call has been successfully added.",
+    });
+  };
+
+  const handleAddUnit = () => {
+    if (!newUnit.callSign.trim() || !newUnit.officer.trim() || !newUnit.location.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+      });
+      return;
+    }
+
+    const unit: Unit = {
+      id: Date.now().toString(),
+      callSign: newUnit.callSign,
+      officer: newUnit.officer,
+      location: newUnit.location,
+      status: newUnit.status
+    };
+
+    setActiveUnits([...activeUnits, unit]);
+    setNewUnit({ callSign: '', officer: '', location: '', status: 'AVAILABLE' });
+    setIsAddUnitDialogOpen(false);
+
+    toast({
+      title: "Unit Added",
+      description: "New unit has been successfully added.",
+    });
+  };
 
   const handleEditCall = (callId: string) => {
     toast({
@@ -190,20 +271,71 @@ const Dashboard = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-xl">Recent Calls</CardTitle>
-              <div className="flex gap-2">
-                <Button size="sm" className="bg-primary hover:bg-primary/90">
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add
-                </Button>
-                <Button size="sm" variant="outline" className="border-border">
-                  <Edit className="w-4 h-4 mr-1" />
-                  Edit
-                </Button>
-                <Button size="sm" variant="outline" className="border-destructive/20 hover:bg-destructive/10">
-                  <Trash2 className="w-4 h-4 mr-1" />
-                  Delete
-                </Button>
-              </div>
+              <Dialog open={isAddCallDialogOpen} onOpenChange={setIsAddCallDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="bg-primary hover:bg-primary/90">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-card border-border max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Add New Call</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="call-type">Call Type</Label>
+                      <Input
+                        id="call-type"
+                        value={newCall.type}
+                        onChange={(e) => setNewCall({...newCall, type: e.target.value})}
+                        placeholder="e.g., 911 Emergency, Traffic Stop"
+                        className="bg-input border-border"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="call-location">Location</Label>
+                      <Input
+                        id="call-location"
+                        value={newCall.location}
+                        onChange={(e) => setNewCall({...newCall, location: e.target.value})}
+                        placeholder="Address or intersection"
+                        className="bg-input border-border"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="call-priority">Priority</Label>
+                      <Select 
+                        value={newCall.priority} 
+                        onValueChange={(value: 'HIGH' | 'MEDIUM' | 'LOW') => 
+                          setNewCall({...newCall, priority: value})
+                        }
+                      >
+                        <SelectTrigger className="bg-input border-border">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover border-border">
+                          <SelectItem value="HIGH">High</SelectItem>
+                          <SelectItem value="MEDIUM">Medium</SelectItem>
+                          <SelectItem value="LOW">Low</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex gap-2 pt-4">
+                      <Button onClick={handleAddCall} className="flex-1">
+                        Add Call
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsAddCallDialogOpen(false)}
+                        className="border-border"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardHeader>
           <CardContent>
@@ -257,20 +389,81 @@ const Dashboard = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-xl">Active Units</CardTitle>
-              <div className="flex gap-2">
-                <Button size="sm" className="bg-primary hover:bg-primary/90">
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add
-                </Button>
-                <Button size="sm" variant="outline" className="border-border">
-                  <Edit className="w-4 h-4 mr-1" />
-                  Edit
-                </Button>
-                <Button size="sm" variant="outline" className="border-destructive/20 hover:bg-destructive/10">
-                  <Trash2 className="w-4 h-4 mr-1" />
-                  Delete
-                </Button>
-              </div>
+              <Dialog open={isAddUnitDialogOpen} onOpenChange={setIsAddUnitDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="bg-primary hover:bg-primary/90">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-card border-border max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Add New Unit</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="unit-callsign">Call Sign</Label>
+                      <Input
+                        id="unit-callsign"
+                        value={newUnit.callSign}
+                        onChange={(e) => setNewUnit({...newUnit, callSign: e.target.value})}
+                        placeholder="e.g., Unit 101"
+                        className="bg-input border-border"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="unit-officer">Officer</Label>
+                      <Input
+                        id="unit-officer"
+                        value={newUnit.officer}
+                        onChange={(e) => setNewUnit({...newUnit, officer: e.target.value})}
+                        placeholder="Officer name"
+                        className="bg-input border-border"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="unit-location">Location</Label>
+                      <Input
+                        id="unit-location"
+                        value={newUnit.location}
+                        onChange={(e) => setNewUnit({...newUnit, location: e.target.value})}
+                        placeholder="Current patrol location"
+                        className="bg-input border-border"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="unit-status">Status</Label>
+                      <Select 
+                        value={newUnit.status} 
+                        onValueChange={(value: 'AVAILABLE' | 'BUSY' | 'OUT_OF_SERVICE') => 
+                          setNewUnit({...newUnit, status: value})
+                        }
+                      >
+                        <SelectTrigger className="bg-input border-border">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover border-border">
+                          <SelectItem value="AVAILABLE">Available</SelectItem>
+                          <SelectItem value="BUSY">Busy</SelectItem>
+                          <SelectItem value="OUT_OF_SERVICE">Out of Service</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex gap-2 pt-4">
+                      <Button onClick={handleAddUnit} className="flex-1">
+                        Add Unit
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsAddUnitDialogOpen(false)}
+                        className="border-border"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardHeader>
           <CardContent>

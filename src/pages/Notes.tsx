@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, AlertTriangle, Phone, FileText, Clock } from 'lucide-react';
+import { Plus, AlertTriangle, Phone, FileText, Clock, Trash2, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Note {
@@ -108,6 +108,14 @@ const Notes = () => {
     toast({
       title: "Note Added",
       description: `${note.type} note has been successfully added.`,
+    });
+  };
+
+  const handleDeleteNote = (noteId: string) => {
+    setNotes(notes.filter(note => note.id !== noteId));
+    toast({
+      title: "Note Deleted",
+      description: "Note has been successfully removed.",
     });
   };
 
@@ -298,28 +306,40 @@ const Notes = () => {
         {notes.map((note) => (
           <Card key={note.id} className="bg-card border-border hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg border ${getTypeColor(note.type)}`}>
-                    {getTypeIcon(note.type)}
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">{note.title}</CardTitle>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge className={getTypeColor(note.type)}>
-                        {note.type === 'CUSTOM' && note.customType ? note.customType : note.type.replace('_', ' ')}
-                      </Badge>
-                      <Badge className={getPriorityColor(note.priority)}>
-                        {note.priority}
-                      </Badge>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock className="w-3 h-3" />
-                        {note.timestamp}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+               <div className="flex items-start justify-between">
+                 <div className="flex items-center gap-3">
+                   <div className={`p-2 rounded-lg border ${getTypeColor(note.type)}`}>
+                     {getTypeIcon(note.type)}
+                   </div>
+                   <div>
+                     <CardTitle className="text-lg">{note.title}</CardTitle>
+                     <div className="flex items-center gap-2 mt-1">
+                       <Badge className={getTypeColor(note.type)}>
+                         {note.type === 'CUSTOM' && note.customType ? note.customType : note.type.replace('_', ' ')}
+                       </Badge>
+                       <Badge className={getPriorityColor(note.priority)}>
+                         {note.priority}
+                       </Badge>
+                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                         <Clock className="w-3 h-3" />
+                         {note.timestamp}
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+                 
+                 {/* Action Buttons */}
+                 <div className="flex gap-1">
+                   <Button
+                     size="sm"
+                     variant="ghost"
+                     className="h-8 w-8 p-0 hover:bg-destructive/10"
+                     onClick={() => handleDeleteNote(note.id)}
+                   >
+                     <Trash2 className="w-3 h-3 text-destructive" />
+                   </Button>
+                 </div>
+               </div>
             </CardHeader>
             <CardContent>
               <p className="text-foreground/80">{note.description}</p>
