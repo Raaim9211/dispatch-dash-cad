@@ -98,15 +98,27 @@ const Notes = () => {
       if (error) throw error;
       
       if (data) {
-        // If it's a 911 call, also add it to the calls table for Recent Calls
-        if (newNote.type === '911_CALL') {
-          await supabase.from('calls').insert([{
-            type: newNote.title,
-            location: 'Location from call notes', // You might want to add a location field to notes
-            priority: newNote.priority,
-            status: 'ACTIVE'
-          }]);
+        // Add all note types to the calls table for Recent Calls
+        let callType = newNote.title;
+        let callLocation = 'See notes for details';
+        
+        if (newNote.type === 'BOLO') {
+          callType = `BOLO: ${newNote.title}`;
+          callLocation = 'Multiple locations - see description';
+        } else if (newNote.type === '911_CALL') {
+          callType = `911 Call: ${newNote.title}`;
+          callLocation = 'Location from caller';
+        } else if (newNote.type === 'CUSTOM') {
+          callType = `${newNote.customType || 'Custom'}: ${newNote.title}`;
+          callLocation = 'See notes for location details';
         }
+
+        await supabase.from('calls').insert([{
+          type: callType,
+          location: callLocation,
+          priority: newNote.priority,
+          status: 'ACTIVE'
+        }]);
 
         setNotes([data[0] as Note, ...notes]);
         setNewNote({
@@ -120,9 +132,7 @@ const Notes = () => {
 
         toast({
           title: "Note Added",
-          description: newNote.type === '911_CALL' 
-            ? "911 call note added and call dispatched to Recent Calls" 
-            : "Note has been successfully added.",
+          description: "Note added and dispatched to Recent Calls",
         });
       }
     } catch (error) {

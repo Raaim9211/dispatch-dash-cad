@@ -78,7 +78,7 @@ const Dashboard = () => {
 
   const activeCalls = recentCalls.filter(call => call.status === 'ACTIVE').length;
   const availableUnits = activeUnits.filter(unit => unit.status === 'AVAILABLE').length;
-  const totalBolos = 3; // Mock data
+  const totalBolos = recentCalls.filter(call => call.type.includes('BOLO') && call.status === 'ACTIVE').length;
 
   const handleAddCall = async () => {
     if (!newCall.type.trim() || !newCall.location.trim()) {
