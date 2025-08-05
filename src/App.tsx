@@ -12,47 +12,43 @@ import Notes from "./pages/Notes";
 import Dispatch from "./pages/Dispatch";
 import AdminUsers from "./pages/AdminUsers";
 import NotFound from "./pages/NotFound";
-
 const queryClient = new QueryClient();
-
-const ProtectedLayout = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <SidebarProvider>
+const ProtectedLayout = ({
+  children
+}: {
+  children: React.ReactNode;
+}) => {
+  return <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <CADSidebar />
         <main className="flex-1 flex flex-col">
           <header className="h-12 flex items-center border-b border-border bg-card/50 backdrop-blur-sm">
             <SidebarTrigger className="ml-4" />
           </header>
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 overflow-auto bg-slate-700">
             {children}
           </div>
         </main>
       </div>
-    </SidebarProvider>
-  );
+    </SidebarProvider>;
 };
-
 const AppContent = () => {
-  const { isAuthenticated, loading } = useAuth();
-
+  const {
+    isAuthenticated,
+    loading
+  } = useAuth();
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+    return <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="text-muted-foreground">Loading...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (!isAuthenticated) {
     return <LoginForm />;
   }
-
-  return (
-    <ProtectedLayout>
+  return <ProtectedLayout>
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
@@ -61,12 +57,9 @@ const AppContent = () => {
         <Route path="/admin/users" element={<AdminUsers />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </ProtectedLayout>
-  );
+    </ProtectedLayout>;
 };
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+const App = () => <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
         <Toaster />
@@ -76,7 +69,5 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
-  </QueryClientProvider>
-);
-
+  </QueryClientProvider>;
 export default App;
