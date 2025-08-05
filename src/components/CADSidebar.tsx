@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, Radio, LogOut, Clock } from 'lucide-react';
+import { LayoutDashboard, FileText, Radio, LogOut, Clock, Users } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -21,11 +21,15 @@ const navigation = [
   { title: 'Dispatch', url: '/dispatch', icon: Radio },
 ];
 
+const adminNavigation = [
+  { title: 'User Management', url: '/admin/users', icon: Users },
+];
+
 export function CADSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
-  const { logout, user } = useAuth();
+  const { logout, profile, isAdmin } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -58,7 +62,7 @@ export function CADSidebar() {
                   {currentTime.toLocaleTimeString()}
                 </div>
                 <div className="mt-1">
-                  User: {user?.username}
+                  User: {profile ? `${profile.first_name} ${profile.last_name}` : 'Loading...'}
                 </div>
               </div>
             </div>
@@ -94,6 +98,33 @@ export function CADSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Admin Navigation */}
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel className={collapsed ? "sr-only" : ""}>
+              Administration
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminNavigation.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink 
+                        to={item.url} 
+                        className={getNavClassName}
+                        title={collapsed ? item.title : undefined}
+                      >
+                        <item.icon className="w-5 h-5" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {/* Sign Out Button */}
         <div className="mt-auto p-4 border-t border-border">

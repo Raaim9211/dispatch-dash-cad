@@ -10,6 +10,7 @@ import { CADSidebar } from "@/components/CADSidebar";
 import Dashboard from "./pages/Dashboard";
 import Notes from "./pages/Notes";
 import Dispatch from "./pages/Dispatch";
+import AdminUsers from "./pages/AdminUsers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,7 +34,18 @@ const ProtectedLayout = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AppContent = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <LoginForm />;
@@ -46,6 +58,7 @@ const AppContent = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/notes" element={<Notes />} />
         <Route path="/dispatch" element={<Dispatch />} />
+        <Route path="/admin/users" element={<AdminUsers />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </ProtectedLayout>

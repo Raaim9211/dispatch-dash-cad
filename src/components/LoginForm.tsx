@@ -8,7 +8,7 @@ import { Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const LoginForm = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
@@ -18,16 +18,13 @@ const LoginForm = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    const success = login(username, password);
+    const { error } = await login(email, password);
     
-    if (!success) {
+    if (error) {
       toast({
         variant: "destructive",
         title: "Authentication Failed",
-        description: "Invalid credentials. Contact your administrator.",
+        description: error.message || "Invalid credentials. Contact your administrator.",
       });
     }
     
@@ -50,13 +47,13 @@ const LoginForm = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your username"
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
                   required
                   className="bg-input border-border"
                 />
@@ -83,7 +80,7 @@ const LoginForm = () => {
             </form>
             <div className="mt-6 text-center">
               <p className="text-xs text-muted-foreground">
-                Demo credentials: admin / dispatch123
+                Contact your administrator for access credentials
               </p>
             </div>
           </CardContent>
