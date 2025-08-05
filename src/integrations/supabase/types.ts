@@ -14,7 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      calls: {
+        Row: {
+          created_at: string
+          id: string
+          location: string
+          priority: string
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location: string
+          priority: string
+          status?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location?: string
+          priority?: string
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      units: {
+        Row: {
+          created_at: string
+          id: string
+          location: string
+          officer: string
+          status: string
+          unit_number: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location: string
+          officer: string
+          status?: string
+          unit_number: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location?: string
+          officer?: string
+          status?: string
+          unit_number?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
